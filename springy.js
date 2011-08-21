@@ -59,9 +59,10 @@ Graph.prototype.addNode = function(node) {
 
 Graph.prototype.addEdge = function(edge) {
 	var exists = false;
-	this.edges.forEach(function(e) {
+	for ( i in this.edges ) {
+		e = this.edges[i];
 		if (edge.id === e.id) { exists = true; }
-	});
+	}
 
 	if (!exists) {
 		this.edges.push(edge);
@@ -75,9 +76,10 @@ Graph.prototype.addEdge = function(edge) {
 	}
 
 	exists = false;
-	this.adjacency[edge.source.id][edge.target.id].forEach(function(e) {
-			if (edge.id === e.id) { exists = true; }
-	});
+	for ( i in this.adjacency[edge.source.id][edge.target.id] ){
+		e = this.adjacency[edge.source.id][edge.target.id][i];
+		if (edge.id === e.id) { exists = true; }
+	}
 
 	if (!exists) {
 		this.adjacency[edge.source.id][edge.target.id].push(edge);
@@ -122,11 +124,12 @@ Graph.prototype.removeNode = function(node) {
 	}
 
 	var tmpEdges = this.edges.slice();
-	tmpEdges.forEach(function(e) {
+	for ( i in tmpEdges ) {
+		e = tmpEdges[i];
 		if (e.source.id === node.id || e.target.id === node.id) {
 			this.removeEdge(e);
 		}
-	}, this);
+	}
 
 	this.notify();
 };
@@ -168,11 +171,13 @@ var o = {
 */
 Graph.prototype.merge = function(data) {
 	var nodes = [];
-	data.nodes.forEach(function(n) {
+	for ( i in data.nodes ){
+		n = data.nodes[i];
 		nodes.push(this.addNode(new Node(n.id, n.data)));
-	}, this);
-
-	data.edges.forEach(function(e) {
+	}
+	
+	for ( i in data.edges ){
+		e = data.edges[i];
 		var from = nodes[e.from];
 		var to = nodes[e.to];
 
@@ -184,25 +189,27 @@ Graph.prototype.merge = function(data) {
 
 		var edge = this.addEdge(new Edge(id, from, to, e.data));
 		edge.data.type = e.type;
-	}, this);
+	}
 };
 
 Graph.prototype.filterNodes = function(fn) {
 	var tmpNodes = this.nodes.slice();
-	tmpNodes.forEach(function(n) {
+	for ( i in tmpNodes ){
+		n = tmpNodes[i];
 		if (!fn(n)) {
 			this.removeNode(n);
 		}
-	}, this);
+	}
 };
 
 Graph.prototype.filterEdges = function(fn) {
 	var tmpEdges = this.edges.slice();
-	tmpEdges.forEach(function(e) {
+	for ( i in tmpEdges ){
+		e = tmpEdges[i];
 		if (!fn(e)) {
 			this.removeEdge(e);
 		}
-	}, this);
+	}
 };
 
 
@@ -211,9 +218,10 @@ Graph.prototype.addGraphListener = function(obj) {
 };
 
 Graph.prototype.notify = function() {
-	this.eventListeners.forEach(function(obj){
+	for ( i in this.eventListeners ){
+		obj = this.eventListeners[i];
 		obj.graphChanged();
-	});
+	}
 };
 
 // -----------
@@ -244,22 +252,24 @@ Layout.ForceDirected.prototype.spring = function(edge) {
 		var existingSpring = false;
 
 		var from = this.graph.getEdges(edge.source, edge.target);
-		from.forEach(function(e) {
+		for ( i in from ){
+			e = from[i];
 			if (existingSpring === false && typeof(this.edgeSprings[e.id]) !== 'undefined') {
 				existingSpring = this.edgeSprings[e.id];
 			}
-		}, this);
+		}
 
 		if (existingSpring !== false) {
 			return new Layout.ForceDirected.Spring(existingSpring.point1, existingSpring.point2, 0.0, 0.0);
 		}
 
 		var to = this.graph.getEdges(edge.target, edge.source);
-		from.forEach(function(e){
+		for ( i in from ){
+			e = from[i];
 			if (existingSpring === false && typeof(this.edgeSprings[e.id]) !== 'undefined') {
 				existingSpring = this.edgeSprings[e.id];
 			}
-		}, this);
+		}
 
 		if (existingSpring !== false) {
 			return new Layout.ForceDirected.Spring(existingSpring.point2, existingSpring.point1, 0.0, 0.0);
@@ -276,25 +286,28 @@ Layout.ForceDirected.prototype.spring = function(edge) {
 // callback should accept two arguments: Node, Point
 Layout.ForceDirected.prototype.eachNode = function(callback) {
 	var t = this;
-	this.graph.nodes.forEach(function(n){
+	for ( i in this.graph.nodes ){
+		n = this.graph.nodes[i];
 		callback.call(t, n, t.point(n));
-	});
+	}
 };
 
 // callback should accept two arguments: Edge, Spring
 Layout.ForceDirected.prototype.eachEdge = function(callback) {
 	var t = this;
-	this.graph.edges.forEach(function(e){
+	for ( i in this.graph.edges ){
+		e = this.graph.edges[i];
 		callback.call(t, e, t.spring(e));
-	});
+	}
 };
 
 // callback should accept one argument: Spring
 Layout.ForceDirected.prototype.eachSpring = function(callback) {
 	var t = this;
-	this.graph.edges.forEach(function(e){
+	for ( i in this.graph.edges ){
+		e = this.graph.edges[i];
 		callback.call(t, t.spring(e));
-	});
+	}
 };
 
 
@@ -402,14 +415,15 @@ Layout.ForceDirected.prototype.start = function(interval, render, done) {
 Layout.ForceDirected.prototype.nearest = function(pos) {
 	var min = {node: null, point: null, distance: null};
 	var t = this;
-	this.graph.nodes.forEach(function(n){
+	for ( i in this.graph.nodes ){
+		n = this.graph.nodes[i];
 		var point = t.point(n);
 		var distance = point.p.subtract(pos).magnitude();
 
 		if (min.distance === null || distance < min.distance) {
 			min = {node: n, point: point, distance: distance};
 		}
-	});
+	}
 
 	return min;
 };
@@ -536,4 +550,3 @@ Renderer.prototype.start = function() {
 		});
 	});
 };
-
